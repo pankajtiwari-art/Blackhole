@@ -1,133 +1,153 @@
-window.onload = function(){
-let b = init("back").ctx,
-  m = init("middle").ctx,
-  f = init("front").ctx,
-  bac = init("back").canv,
-  mid = init("middle").canv,
-  fro = init("front").canv,
-  w = window.innerWidth,
-  h = window.innerHeight;
-//initiation
-bac.width = w;
-mid.width = w;
-fro.width = w;
-bac.height = h;
-mid.height = h;
-fro.height = h;
+let back = document.getElementById("back")
+let mid = document.getElementById("middle")
+let front = document.getElementById("front")
 
-class particle {
-  constructor(x, y, r) {
-    this.ox = x;
-    this.oy = y;
-    this.br = r;
-    this.re = Math.random() * r;
-    this.col = "rgb(255,"+(Math.floor(100+Math.random()*50))+",80,0.5)";
-    this.a = Math.random() * 2 * Math.PI;
-    this.size = Math.random() * 4;
-    this.q = 1 / 3 + Math.random() * (1 / 2 - 1 / 3);
-    this.h2p = 10;
-    this.x =
-      this.ox + (this.br + this.re + this.size + this.h2p) * Math.cos(this.a);
-    this.y =
-      this.oy +
-      (this.br + this.re + this.size + this.h2p) * this.q * Math.sin(this.a);
-    this.tail = [{x:this.x,y:this.y,a:this.a}];
-    this.tl = Math.floor(Math.random()*5+5);
-  }
-  move(x,y) {
-    this.ox = x;
-    this.oy = y;
-    this.x =
-      this.ox + (this.br + this.re + this.size + this.h2p) * Math.cos(this.a);
-    this.y =
-      this.oy +
-      (this.br + this.re + this.size + this.h2p) * this.q * Math.sin(this.a);
-    this.tail.push({x:this.x,y:this.y,a:this.a});
-    
-    if(this.tail.length > this.tl){
-       this.tail.splice(0,1);
-       }
-    this.a += (this.br - this.re) / 1000;
-  }
-  show() {
-    let i = 0;
-    for(i = 0; i < this.tail.length; i++){
-    if (Math.floor((this.tail[i].a+Math.random()*0.2-0.1) / Math.PI) % 2 != 0) {
-    b.beginPath();
-    b.arc(this.tail[i].x, this.tail[i].y, this.size, 0, 2 * Math.PI);
-    b.fillStyle = this.col;
-    b.fill();
-    }else{
-    f.beginPath();
-    f.arc(this.tail[i].x, this.tail[i].y, this.size, 0, 2 * Math.PI);
-    f.fillStyle = this.col;
-    f.fill();
-    }
-  }
-  }
+let b = back.getContext("2d")
+let m = mid.getContext("2d")
+let f = front.getContext("2d")
+
+let w = window.innerWidth
+let h = window.innerHeight
+
+back.width = mid.width = front.width = w
+back.height = mid.height = front.height = h
+
+
+class Particle{
+
+constructor(x,y,r){
+
+this.ox = x
+this.oy = y
+this.br = r
+
+this.re = Math.random()*r
+this.a = Math.random()*Math.PI*2
+
+this.q = 0.3 + Math.random()*0.2
+this.size = Math.random()*3+1
+
+this.col = "rgba(255,"+(120+Math.random()*80)+",80,0.8)"
+
+this.tail=[]
+this.tl = Math.floor(Math.random()*6+6)
+
 }
 
-let p = [],
-  num = 400,
-  i = 0;
 
-for (i = 0; i < num; i++) {
-  p.push(new particle(w / 2, h / 2, 100));
+move(cx,cy){
+
+this.ox = cx
+this.oy = cy
+
+let radius = this.br + this.re
+
+this.x = this.ox + radius*Math.cos(this.a)
+this.y = this.oy + radius*this.q*Math.sin(this.a)
+
+this.tail.push({x:this.x,y:this.y,a:this.a})
+
+if(this.tail.length>this.tl){
+
+this.tail.shift()
+
 }
 
-function draw() {
-  b.globalCompositeOperation = "lighter";
-f.globalCompositeOperation = "lighter";
-  //animation
-  for (i = 0; i < num; i++) {
-    p[i].move(w / 2, h / 2);
-    p[i].show();
-  }
+this.a += (this.br-this.re)/1200
 
-  m.beginPath();
-  m.arc(w / 2, h / 2, 100, 0, 2 * Math.PI);
-  m.fillStyle = "black";
-  m.fill();
 }
 
-function init(elemid) {
-  (this.canvas = document.getElementById(elemid)),
-    (this.c = canvas.getContext("2d"));
-  return { canv: this.canvas, ctx: this.c };
+
+draw(){
+
+for(let i=0;i<this.tail.length;i++){
+
+let t = this.tail[i]
+
+if(Math.floor(t.a/Math.PI)%2){
+
+b.beginPath()
+b.arc(t.x,t.y,this.size,0,Math.PI*2)
+
+b.fillStyle=this.col
+b.fill()
+
+}else{
+
+f.beginPath()
+f.arc(t.x,t.y,this.size,0,Math.PI*2)
+
+f.fillStyle=this.col
+f.fill()
+
 }
 
-window.requestAnimFrame = function() {
-  return (
-    window.requestAnimationFrame ||
-    window.webkitRequestAnimationFrame ||
-    window.mozRequestAnimationFrame ||
-    window.oRequestAnimationFrame ||
-    window.msRequestAnimationFrame ||
-    function(callback) {
-      window.setTimeout(callback);
-    }
-  );
-};
-
-function loop() {
-  window.requestAnimFrame(loop);
-  b.clearRect(0, 0, w, h);
-  m.clearRect(0, 0, w, h);
-  f.clearRect(0, 0, w, h);
-  draw();
 }
 
-window.addEventListener("resize", function() {
-  (w = window.innerWidth), (h = window.innerHeight);
-  bac.width = w;
-  mid.width = w;
-  fro.width = w;
-  bac.height = h;
-  mid.height = h;
-  fro.height = h;
-  loop();
-});
-
-loop();
-setInterval(loop, 1000 / 990);
 }
+
+}
+
+
+
+let particles=[]
+let total = 600
+
+for(let i=0;i<total;i++){
+
+particles.push(new Particle(w/2,h/2,120))
+
+}
+
+
+
+function draw(){
+
+b.globalCompositeOperation="lighter"
+f.globalCompositeOperation="lighter"
+
+for(let p of particles){
+
+p.move(w/2,h/2)
+p.draw()
+
+}
+
+m.beginPath()
+
+m.arc(w/2,h/2,120,0,Math.PI*2)
+
+m.fillStyle="black"
+m.fill()
+
+}
+
+
+
+function loop(){
+
+requestAnimationFrame(loop)
+
+b.clearRect(0,0,w,h)
+m.clearRect(0,0,w,h)
+f.clearRect(0,0,w,h)
+
+draw()
+
+}
+
+
+
+loop()
+
+
+
+window.addEventListener("resize",()=>{
+
+w = window.innerWidth
+h = window.innerHeight
+
+back.width = mid.width = front.width = w
+back.height = mid.height = front.height = h
+
+})
